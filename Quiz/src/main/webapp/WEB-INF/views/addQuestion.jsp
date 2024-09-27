@@ -2,13 +2,68 @@
 <html>
 <head>
     <title>Add Question</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 50%;
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 16px;
+            color: #555;
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        p {
+            color: green;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <h1>Add a New Question</h1>
 
     <!-- Display success or failure message -->
     <c:if test="${not empty message}">
-        <p style="color: green;">${message}</p>
+        <p>${message}</p>
     </c:if>
 
     <form action="/add-question" method="post">
@@ -31,9 +86,8 @@
     </form>
 
 
-    <!-- Optional back button if needed -->
-
-        <input type="submit" value="Go Back" formaction="welcome">
-    </form>
+    <form action="/quiz" method="get">
+           <input type="submit" value="Back to Home">
+       </form>
 </body>
 </html>

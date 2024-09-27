@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class QuizService {
@@ -30,16 +31,32 @@ public class QuizService {
         return allQuestions.size() > limit ? allQuestions.subList(0, limit) : allQuestions;
     }
 
+
+    public void updateContestant(Contestant contestant) {
+        contestantRepository.save(contestant); }
     public Contestant addContestant(Contestant contestant) {
+
         return contestantRepository.save(contestant);
     }
 
     public Contestant getContestantByUsername(String username) {
+
         return contestantRepository.findByUsername(username);
     }
-
+    public Contestant findByUsername(String username) {
+        return contestantRepository.findByUsername(username);
+    }
     public List<Contestant> getAllContestants() {
+
         return contestantRepository.findAll();
     }
+    public void saveContestant(Contestant contestant) {
+        contestantRepository.save(contestant); // Assuming you have a ContestantRepository to handle DB operations
+    }
+    public Optional<Question> findById(Integer id) {
+        return questionRepository.findById(id);
+    }
+
+
 
 }

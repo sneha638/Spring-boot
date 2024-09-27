@@ -17,7 +17,7 @@ public class SecurityConfig {
                         .requestMatchers("/login").permitAll()
                         .anyRequest().authenticated()
                 )
-                // Login and Logout configuration
+
                 .formLogin(form -> form
                         .defaultSuccessUrl("/quiz", true)
                         .permitAll()

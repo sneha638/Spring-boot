@@ -8,8 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class QuizController {
@@ -28,56 +28,84 @@ public class QuizController {
         model.addObject("message", "Question added successfully!");
         return model;
     }
-
-
     @PostMapping("/start")
     public ModelAndView startQuiz(@ModelAttribute Contestant contestant, Model model) {
         String username = contestant.getUsername();
         ModelAndView model1 = new ModelAndView("startQuiz");
-
         if (username == null || username.isEmpty()) {
             model1.addObject("message", "Username is required.");
             return model1;
         }
-
-        // Check if the contestant already exists in the database
         Contestant existingContestant = quizService.getContestantByUsername(username);
         if (existingContestant != null) {
             model1.addObject("message", "User " + username + " has already taken the quiz.");
             return model1;
         }
-
-        // Create a new contestant object and save it
-        contestant.setUsername(username); // Make sure to set the username
-        quizService.addContestant(contestant); // Save the contestant to the database
-
-        // Fetch random questions for the quiz
+        contestant.setUsername(username);
+        quizService.addContestant(contestant);
         List<Question> questions = quizService.getRandomQuestions(5);
         if (questions.isEmpty()) {
             model1.addObject("message", "No questions available for the quiz.");
             return model1;
         }
-
-        // Pass the questions and username to the quiz page
         model1.addObject("questions", questions);
         model1.addObject("username", username);
         model1.setViewName("quizPage");
         return model1;
     }
-
-
-
     @PostMapping("/submit-quiz")
-    public ResponseEntity<String> submitQuiz(@ModelAttribute Contestant contestant, @RequestParam(required = false) Integer marks) {
-        if (marks == null) {
-            return ResponseEntity.badRequest().body("Successfully completed");
+    public ResponseEntity<String> submitQuiz(@RequestParam String username, @RequestParam Map<String, String> allParams) {
+        int marks = 0;
+
+        // Filter out non-question related parameters
+        allParams.entrySet().removeIf(entry -> entry.getKey().equals("username"));
+
+        // Loop through the remaining params which are expected to be question IDs
+        for (String questionId : allParams.keySet()) {
+            try {
+                Integer id = Integer.parseInt(questionId);
+                Question question = quizService.findById(id).orElse(null);
+                if (question != null) {
+                    String submittedAnswer = allParams.get(questionId);
+                    if (submittedAnswer != null && Integer.parseInt(submittedAnswer) == question.getCorrectOption()) {
+                        marks++;
+                    }
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid question ID: " + questionId);
+            }
         }
 
-        contestant.setMarks(marks);  // Set the marks in the contestant object
-        quizService.addContestant(contestant);
-        return ResponseEntity.ok("Quiz completed. You scored: " + marks);
+        // Check if the contestant already exists to prevent duplicates
+        Contestant existingContestant = quizService.getContestantByUsername(username);
+        if (existingContestant != null) {
+            existingContestant.setMarks(marks);
+            quizService.updateContestant(existingContestant);
+        } else {
+            // If the contestant is new, create a new entry
+            Contestant contestant = new Contestant();
+            contestant.setUsername(username);
+            contestant.setMarks(marks);
+            quizService.saveContestant(contestant);
+        }
+
+        return ResponseEntity.ok("Quiz submitted successfully! Marks: " + marks);
     }
 
+    @GetMapping("/all-contestants")
+    public ModelAndView viewAllContestantsPage() {
+        List<Contestant> contestants = quizService.getAllContestants();
+
+        // Print contestants in console
+        System.out.println("Results of all contestants:");
+        contestants.forEach(contestant ->
+                System.out.println("Username: " + contestant.getUsername() + ", Marks: " + contestant.getMarks()));
+
+        // If you want to show them in a view (for example, a Thymeleaf or JSP page)
+        ModelAndView model = new ModelAndView("allContestants");
+        model.addObject("contestants", contestants);
+        return model;
+    }
 
     @PostMapping("/view-results")
     public ModelAndView viewResults(@RequestParam String username) {
@@ -88,11 +116,5 @@ public class QuizController {
         return model;
     }
 
-    @GetMapping("/all-contestants")
-    public ModelAndView viewAllContestantsPage() {
-        List<Contestant> contestants = quizService.getAllContestants();
-        ModelAndView model = new ModelAndView("allContestants");
-        model.addObject("contestants", contestants);
-        return model;
-    }
 }
+

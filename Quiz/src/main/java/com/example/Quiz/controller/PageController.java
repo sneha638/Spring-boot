@@ -11,7 +11,6 @@ public class PageController {
     }
     @GetMapping("/quiz")
     public String showWelcomePage() {
-
         return "welcome";
     }
     @GetMapping("/start-quiz")

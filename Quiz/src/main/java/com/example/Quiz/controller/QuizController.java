@@ -1,13 +1,20 @@
 package com.example.Quiz.controller;
 
+import com.example.Quiz.exception.UserException;
 import com.example.Quiz.model.Contestant;
 import com.example.Quiz.model.Question;
 import com.example.Quiz.service.QuizService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -17,11 +24,11 @@ public class QuizController {
     private QuizService quizService;
 
     @PostMapping("/add-question")
-    public ModelAndView addQuestion( @RequestParam("question") String questionText,
-                                     @RequestParam("option1") String option1,
-                                     @RequestParam("option2") String option2,
-                                     @RequestParam("option3") String option3,
-                                     @RequestParam("correctOption") int correctOption) {
+    public ModelAndView addQuestion(@RequestParam("question") String questionText,
+                                    @RequestParam("option1") String option1,
+                                    @RequestParam("option2") String option2,
+                                    @RequestParam("option3") String option3,
+                                    @RequestParam("correctOption") int correctOption) {
         Question newQuestion = new Question(questionText, option1, option2, option3, correctOption);
         quizService.addQuestion(newQuestion);
         ModelAndView model = new ModelAndView("welcome");
@@ -29,30 +36,51 @@ public class QuizController {
         return model;
     }
     @PostMapping("/start")
-    public ModelAndView startQuiz(@ModelAttribute Contestant contestant, Model model) {
-        String username = contestant.getUsername();
-        ModelAndView model1 = new ModelAndView("startQuiz");
-        if (username == null || username.isEmpty()) {
-            model1.addObject("message", "Username is required.");
-            return model1;
+    public ModelAndView startQuiz(
+            @RequestParam(value = "username") String username,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam Map<String, String> allParams,
+            HttpSession session) {
+
+        if (quizService.usernameExists(username)) {
+            throw new UserException("Username already exists. Please choose a different username.");
         }
-        Contestant existingContestant = quizService.getContestantByUsername(username);
-        if (existingContestant != null) {
-            model1.addObject("message", "User " + username + " has already taken the quiz.");
-            return model1;
+
+        ModelAndView model = new ModelAndView("quizPage");
+
+        // Fetch paginated questions based on the current page
+        Pageable pageable = PageRequest.of(page, 1); // Assuming 1 question per page
+        Page<Question> questionPage = quizService.getPagedQuestions(pageable);
+        if (!questionPage.hasContent()) {
+            model.addObject("message", "No questions available for the quiz.");
+            return model;
         }
-        contestant.setUsername(username);
-        quizService.addContestant(contestant);
-        List<Question> questions = quizService.getRandomQuestions(5);
-        if (questions.isEmpty()) {
-            model1.addObject("message", "No questions available for the quiz.");
-            return model1;
+
+        Question currentQuestion = questionPage.getContent().get(0);
+
+        // Save the selected answer in the session
+        String selectedAnswerKey = "question_" + currentQuestion.getId();
+        if (allParams.containsKey("selectedAnswer")) {
+            String selectedAnswer = allParams.get("selectedAnswer");
+            session.setAttribute(selectedAnswerKey, selectedAnswer); // Save the selected answer in the session
         }
-        model1.addObject("questions", questions);
-        model1.addObject("username", username);
-        model1.setViewName("quizPage");
-        return model1;
+
+        // Retrieve the previously selected answer from the session for the current question
+        String previousSelectedAnswer = (String) session.getAttribute(selectedAnswerKey);
+
+        // Set additional attributes
+        model.addObject("currentQuestion", currentQuestion);
+        model.addObject("currentPage", page);
+        model.addObject("totalPages", questionPage.getTotalPages());
+        model.addObject("username", username);
+        model.addObject("selectedAnswer", previousSelectedAnswer); // Add the previously selected answer
+
+        return model;
     }
+
+
+
+
     @PostMapping("/submit-quiz")
     public ResponseEntity<String> submitQuiz(@RequestParam String username, @RequestParam Map<String, String> allParams) {
         int marks = 0;
@@ -91,7 +119,6 @@ public class QuizController {
 
         return ResponseEntity.ok("Quiz submitted successfully! Marks: " + marks);
     }
-
     @GetMapping("/all-contestants")
     public ModelAndView viewAllContestantsPage() {
         List<Contestant> contestants = quizService.getAllContestants();
@@ -116,5 +143,17 @@ public class QuizController {
         return model;
     }
 
-}
+    @ControllerAdvice
+    public class GlobalExceptionHandler {
 
+        @ExceptionHandler(UserException.class)
+        public ModelAndView handleUsernameAlreadyExistsException(UserException ex) {
+            ModelAndView model = new ModelAndView("errorPage"); // Change this to the appropriate view name
+            model.addObject("errorMessage", ex.getMessage());  // Pass the error message to the view
+            return model;
+        }
+
+        // Other exception handlers (if needed) can go here
+    }
+
+}

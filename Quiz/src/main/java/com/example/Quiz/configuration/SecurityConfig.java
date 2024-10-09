@@ -31,14 +31,12 @@ public class SecurityConfig {
 
         return http.csrf(customizer -> customizer.disable()).
                 authorizeHttpRequests(request -> request
-                        .requestMatchers("login", "register").permitAll()
+                        .requestMatchers("login", "register", "all-contestants").permitAll()
                         .anyRequest().authenticated()).
                 httpBasic(Customizer.withDefaults()).
                 sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
-
-
     }
 
 
@@ -47,8 +45,6 @@ public class SecurityConfig {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
         provider.setUserDetailsService(userDetailsService);
-
-
         return provider;
     }
 
@@ -57,6 +53,4 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
 
     }
-
-
 }

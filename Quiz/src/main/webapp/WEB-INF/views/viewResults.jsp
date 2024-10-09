@@ -34,7 +34,7 @@
             box-sizing: border-box;
         }
         input[type="submit"] {
-            background-color: #4CAF50;
+            background-color: #003366;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -46,7 +46,7 @@
             margin: 0 auto;
         }
         input[type="submit"]:hover {
-            background-color: #45a049;
+            background-color: #003366;
         }
         .result-container {
             background-color: #e0f7fa;

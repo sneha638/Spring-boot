@@ -1,20 +1,31 @@
 package com.example.Quiz.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+
+
 
 @Entity
 public class Users {
+
     @Id
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String username;
     private String password;
 
-    public Integer getId() {
+    // Add this field if it doesn't exist
+    private String email;
+
+    // Getters and Setters
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -34,5 +45,11 @@ public class Users {
         this.password = password;
     }
 
+    public String getEmail() {
+        return email;
+    }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
 }

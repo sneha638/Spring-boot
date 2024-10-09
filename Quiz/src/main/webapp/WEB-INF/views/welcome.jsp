@@ -11,6 +11,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center; /* Center content vertically */
+            height: 100vh; /* Full height */
         }
         h1 {
             color: #333;
@@ -25,8 +27,6 @@
             margin: 10px 0;
         }
         input[type="submit"] {
-            background-color: #4CAF50;
-            color: white;
             border: none;
             padding: 12px 24px;
             font-size: 16px;
@@ -35,29 +35,75 @@
             transition: background-color 0.3s ease;
             width: 200px;
         }
-        input[type="submit"]:hover {
-            background-color: #45a049;
+        /* Style for the centered 'Start Quiz' button */
+        .highlight {
+            background-color: #003366; /* Dark blue */
+            color: white;
         }
+        .highlight:hover {
+            background-color: #002244; /* Darker blue on hover */
+        }
+        /* Style for subdued buttons */
+        .subdued {
+            background-color: #d3d3d3; /* Ash color */
+            color: black;
+        }
+        .subdued:hover {
+            background-color: #c0c0c0; /* Darker ash on hover */
+        }
+        /* Layout for buttons */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center the start quiz button */
+        }
+        .view-buttons {
+                   display: flex;
+                   flex-direction: column; /* Stack buttons vertically */
+                   align-items: flex-end; /* Align items to the right */
+                   margin-top: 20px; /* Space between the buttons */
+                   position: absolute; /* Position it absolutely */
+                   top: 20px; /* Distance from the top */
+                   right: 20px; /* Distance from the right */
+               }
     </style>
 </head>
 <body>
     <h1>Welcome to the Quiz Application!</h1>
-    <p>Please choose an option below:</p>
 
-    <form action="add-question" method="get">
-        <input type="submit" value="Add Questions">
-    </form>
+        <!-- Display the greeting message -->
+        <%
+            String username = (String) request.getAttribute("username"); // Retrieve the username from the request
+            if (username != null) {
+        %>
+            <p>Hi <%= username %>, let's start the Quiz.<br>Good Luck!</p>
+        <%
+            }
+        %>
 
-    <form action="start-quiz" method="get">
-        <input type="submit" value="Start Quiz">
-    </form>
 
-    <form action="view-results" method="get">
-        <input type="submit" value="View Result">
-    </form>
+    <div class="button-container">
+        <form action="start-quiz" method="get">
+            <input type="submit" value="Start Quiz" class="highlight">
+        </form>
+    </div>
 
-    <form action="all-contestants" method="get">
-        <input type="submit" value="View All Contestants">
-    </form>
+    <div class="view-buttons">
+        <form action="view-results" method="get">
+            <input type="submit" value="View Result" class="subdued">
+        </form>
+
+        <form action="all-contestants" method="get">
+            <input type="submit" value="View All Contestants" class="subdued">
+        </form>
+
+        <form action="add-question" method="get">
+            <input type="submit" value="Add Questions" class="subdued">
+        </form>
+
+        <form action="logout" method="get">
+            <input type="submit" value="Logout" class="subdued">
+        </form>
+    </div>
 </body>
 </html>

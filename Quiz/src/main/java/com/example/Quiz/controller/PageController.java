@@ -26,10 +26,8 @@ public class PageController {
     }
     @GetMapping("/start-quiz")
     public String showStartQuizPage() {
-
         return "startQuiz";
     }
-
     @GetMapping("/view-results")
     public String view() {
 
